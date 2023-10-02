@@ -1,0 +1,143 @@
+//Работа с EEPROM памятью Arduino
+EEPROM (Electrically Erasable Programmable Read-Only Memory) – электрически стираемое перепрограммируемое постоянное запоминающее устройство (ЭСППЗУ)), она же энергонезависимая память.
+
+EEPROM – память, к которой мы имеем полный доступ из выполняющейся программы, т.е. можем во время выполнения читать и писать туда данные, и эти данные не сбрасываются при перезагрузке МК.
+
+Размер - 1Кб.
+
+Основная задача при работе с EEPROM – не напутать с адресами, потому что каждый байт имеет свой адрес.
+Если вы пишете двухбайтные данные, то они займут два байта, и следующие данные нужно будет писать по адресу как минимум +2.
+Важный момент: все ячейки имеют значение по умолчанию (у нового чипа) 255.
+EEPROM имеет ресурс по количеству перезаписи ячеек. Производитель гарантирует 100 000 циклов записи каждой ячейки
+
+Скорость работы с EEPROM (время не зависит от частоты системного клока):
+    Запись одного байта занимает ~3.3 мс (миллисекунды)
+    Чтение одного байта занимает ~0.4 мкс (микросекунды)
+
+
+Библиотека avr/eeprom.h:
+   #include <avr/eeprom.h> //подключения библиотеки
+Чтение: 
+    eeprom_read_byte(адрес)    – вернёт значение
+    eeprom_read_word(адрес)    – вернёт значение
+    eeprom_read_dword(адрес    – вернёт значение (dword:  4 байта)
+    eeprom_read_float(адрес)   – вернёт значение
+Запись:
+    eeprom_write_byte(адрес, значение)
+    eeprom_write_word(адрес, значение)
+    eeprom_write_dword(адрес, значение)
+    eeprom_write_float(адрес, значение)
+Обновление:
+    eeprom_update_byte(адрес, значение)
+    eeprom_update_word(адрес, значение)
+    eeprom_update_dword(адрес, значение)
+    eeprom_update_float(адрес, значение)
+
+пример с простыми типами данных :
+#include <avr/eeprom.h>
+void setup() 
+{
+  Serial.begin(9600);
+  
+  // объявляем данные разных типов
+  byte dataB = 120;
+  float dataF = 3.14;
+  int16_t dataI = -634;  
+
+  // пишем друг за другом
+  eeprom_write_byte(0, dataB);  // 1 байт
+  eeprom_write_float(1, dataF);  // 4 байта
+  eeprom_update_word(5, dataI); // для разнообразия "обновим"
+
+  // объявляем переменные, куда будем читать
+  byte dataB_read = 0;
+  float dataF_read = 0;
+  int16_t dataI_read = 0;
+
+  // читаем
+  dataB_read = eeprom_read_byte(0);
+  dataF_read = eeprom_read_float(1);
+  dataI_read = eeprom_read_word(5);
+
+  // выведет 120 3.14 -634
+  Serial.println(dataB_read);
+  Serial.println(dataF_read);
+  Serial.println(dataI_read);
+}
+void loop() {}
+
+/////////////////////////////////////////////////////////////////////////
+
+пример со структурами :
+#include <avr/eeprom.h>
+void setup() 
+{
+  Serial.begin(9600);
+  // объявляем структуру
+  struct MyStruct 
+  {
+    byte a;
+    int b;
+    float c;
+  };
+  // создаём и заполняем структуру
+  MyStruct myStruct;
+  myStruct.a = 10;
+  myStruct.b = 1000;
+  myStruct.c = 3.14;
+
+  // записываем по адресу 10, указав размер структуры и приведя к void*
+  eeprom_write_block((void*)&myStruct, 10, sizeof(myStruct));
+
+  // создаём новую пустую структуру
+  MyStruct newStruct;
+  // читаем из адреса 10
+  eeprom_read_block((void*)&newStruct, 10, sizeof(newStruct));
+
+  // выведет 10 1000 3.14
+  Serial.println(newStruct.a);
+  Serial.println(newStruct.b);
+  Serial.println(newStruct.c);
+}
+void loop() {}
+
+
+Библиотека EEPROM.h:
+  EEPROM.write(адрес, данные)– пишет данные (только byte!) по адресу
+  EEPROM.update(адрес, данные) – обновляет (та же запись, но лучше) байт данных, находящийся по адресу
+  EEPROM.read(адрес) – читает и возвращает байт данных, находящийся по адресу
+  EEPROM.put(адрес, данные)– записывает (по факту – обновляет, update) данные любого типа (типа переданной переменной) по адресу
+  EEPROM.get(адрес, данные)– читает данные по адресу и сам записывает их в данные – указанную переменную
+
+пример:
+#include <EEPROM.h>
+void setup() 
+{
+  Serial.begin(9600);
+  
+  // пишем 200 по адресу 10
+  EEPROM.update(10, 200);  
+  Serial.println(EEPROM.read(10));  // выведет 200
+  Serial.println(EEPROM[10]);       // выведет 200
+
+  // объявляем переменные, которые будем писать
+  float dataF = 3.14;
+  int16_t dataI = -634;
+  byte dataArray[] = {10, 20, 30, 40};
+  EEPROM.put(0, dataF);
+  EEPROM.put(4, dataI);
+  EEPROM.put(6, dataArray);
+
+  // объявляем переменные, куда будем читать
+  float dataF_read = 0;
+  int16_t dataI_read = 0;
+  byte dataArray_read[4];
+  EEPROM.get(0, dataF_read);
+  EEPROM.get(4, dataI_read);
+  EEPROM.get(6, dataArray_read);
+
+
+}
+void loop() {}
+
+
