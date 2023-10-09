@@ -1,14 +1,13 @@
 
-питание: 3.3В,  судя по документации, от 3 до 3.6 В, VCC - плюс, GND — земля(минус). 
+питание: 3.3В,  судя по документации допустимо напряжение от 3 до 3.6 В, VCC - плюс, GND — земля(минус). 
 потребление: до 300мА
 
-ПИНЫ:
+//ПИНЫ  (ESP-01):
 VCC и GND - питание, (3.3В)
 RX и TX - для обмена с другими устройствами по UART, (3.3В)
 RST - предназначена для перезагрузки модуля, кратковременно закоротив ее с GND, модуль перезагрузиться.
 GPIO0 и GPIO2 пины ввода/вывода (3,3В), если GPIO0 соединен с GND во время включения/перезагрузки, то модуль загружается в режиме программирования и остаётся в нём до перезагрузки.
 CH_PD - предназначен включения/отключения спящего режима модуля (chip power-down). Соединяется с VCC.
-
 
 //подключение к ардуино
 ESP	  ардуино
@@ -17,32 +16,13 @@ TX   ->     RX (на прямую)
 конвертер логического уровня от TX ардуины: 
     TX ардуины далее R(1КОм), далее 2 ветки: 1-я на RX ESP, 2-я на R(2КОм) затем на GND ардуины.
 
-
-Включение:
+//Включение:
 Подключите питание — загорится красный диод. 
 Подключите пин CH_PD на 3,3v — мигнёт синий диод. 
 В списке сетей wifi на Вашем телефоне/планшете, появится новое устройство с именем «AI-THINKER...».
 Можно подключится к нему, но толку от этого пока никакого не будет.
 
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
-Добавление поддержки платы ESP8266 в программное обеспечение Arduino IDE:
-    1. Активировать пункт меню: Arduino -> Настройки (Arduino -> Preferences)
-    2. В диалоговом окне в текстовое поле в нижней части окна настроек вставьте текст: http://arduino.esp8266.com/stable/package_esp8266com_index.json
-    3. Нажмите кнопку ОК, чтобы закрыть окно настроек.
-    4. Активировать пункт меню: Инструменты -> Плата: (название платы) -> Диспетчер плат (Tools -> Board:(board name) -> Boards Manager)
-    5. Подождите некоторое время, пока менеджер плат загрузит содержимое, а затем начните вводить «ESP8266» в строку поиска.
-    6. Выберите «esp8266 от сообщества ESP8266» (esp8266 by ESP8266 Community), и нажать «Установить» (Install), чтобы получить последний пакет для платы.
-    7. Далее смените плату на ESP8266, активировав пункт меню (Tools -> Board:(board name) -> ESP8266 (Generic ESP8266 board)
-    8. Далее указать нужный порт, активировав пункт меню (Tools -> Board:(board name) -> Port
-
-Подключение библиотек для работы с модулем:
-#include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
-
-    
-Команды AT:
+//Команды AT:
 Откройте монитор порта. Настройте скорость соединения — 9600 бод. Конец строки — NL & CR. 
 
 Тестовая команда «AT»
@@ -50,18 +30,34 @@ TX   ->     RX (на прямую)
 В ответ получим «OK»
 Если ответа нет или появляются непонятные символы — проверьте правильность подключения и настройки скорости обмена данными. 
 
-Настройка режима работы
-Wi-Fi модуль умеет работать в трёх режимах:
-    Режим точки доступа
-    Режим клиента
-    Смешанный режим
-
 Переведём чип в смешанный режим командой: AT+CWMODE_DEF=3
 После установки модуль должен ответить «OK»
 
-Библиотека WiFi ESP8266:
 
-    WiFi.mode(m): выбрать режим WIFI_AP (точка доступа), WIFI_STA (клиент), или WIFI_AP_STA (оба режима одновременно).
+----------------------------------------------------------------------------------------
+
+Настройка среды Arduino IDE для написания скетчей для плат на базе ESP826:
+    1. Активировать пункт меню: Arduino -> Настройки (Arduino -> Preferences)
+    2. В диалоговом окне в текстовое поле в нижней части окна настроек вставьте текст: http://arduino.esp8266.com/stable/package_esp8266com_index.json
+    3. Нажмите кнопку ОК, чтобы закрыть окно настроек.
+    4. Активировать пункт меню: Инструменты -> Плата: (название платы) -> Диспетчер плат (Tools -> Board:(board name) -> Boards Manager)
+    5. Подождите некоторое время, пока менеджер плат загрузит содержимое, а затем начните вводить «ESP8266» в строку поиска.
+    6. Выберите «esp8266 от сообщества ESP8266» (esp8266 by ESP8266 Community), и нажать «Установить» (Install), чтобы получить последний пакет для платы.
+    7. Далее смените плату на ESP8266, активировав пункт меню (Tools -> Board:(board name) -> ESP8266 (Generic ESP8266 board).
+	    ИЛИ аналогично выбрать самую свежую nodemcu, если работаем с ней.
+    8. Далее указать нужный порт, активировав пункт меню (Tools -> Board:(board name) -> Port
+
+----------------------------------------------------------------------------------------------
+
+Подключение библиотек для работы с модулем:
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266mDNS.h>   //подгружаем библиотеку mDNS
+
+
+Библиотека ESP8266WiFi.h:
+    WiFi.mode(m): выбрать режим работы адаптера WiFi - WIFI_AP (точка доступа), WIFI_STA (клиент), или WIFI_AP_STA (оба режима одновременно), WIFI_OFF (выключить адаптер) .
     WiFi.softAP(ssid) создает открытую точку доступа
     WiFi.softAP(ssid, password) создает точку доступа с WPA2-PSK шифрованием, пароль должен быть не менее 8 символов
     WiFi.macAddress(mac) позволяет получить MAC адрес в режиме клиента
@@ -70,27 +66,87 @@ Wi-Fi модуль умеет работать в трёх режимах:
     WiFi.softAPIP() позволяет получить IP адрес в режиме точки доступа
     WiFi.RSSI() пока не реализована
     WiFi.printDiag(Serial); выводит диагностическую информацию
+    WiFi.disconnect(); отключится от сети
+    WiFi.config(ip, gateway, subnet); установка статических настроек, ip, gateway, subnet - переменные типа IPAddress (пример объявления IPAddress ip(192,168,1,17); ) 
+    WiFi.status(); состояние сетевого соединения, возможные значения:
+	0       WL_IDLE_STATUS  temporary status assigned when WiFi.begin() is called
+	1       WL_NO_SSID_AVAIL         when no SSID are available
+	2       WL_SCAN_COMPLETED       scan networks is completed
+	3       WL_CONNECTED    when connected to a WiFi network
+	4       WL_CONNECT_FAILED       when the connection fails for all the attempts
+	5       WL_CONNECTION_LOST      when the connection is lost
+	6       WL_DISCONNECTED when disconnected from a network
+						     
 
-пример: (подключение ESP к точке доступа, как клиент)
+ПРИМЕР: (подключение модуля к существующей точке доступа, как клиент)
+#include <ESP8266WiFi.h>
 void setup()
 {
   Serial.begin(115200);
-  WiFi.begin("network-name", "pass-to-network");
+  WiFi.begin("network-name", "password");
   Serial.print("Connecting");  //  "Подключение"
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
+    delay(3000);
     Serial.print(".");
   }
   Serial.print("Connected, IP address: "); //  "Подключились, IP-адрес: "
   Serial.println(WiFi.localIP()); //выводит IP-address который DHCP присвоил
 }
-В строчке WiFi.begin("network-name", "pass-to-network") вместо network-name и pass-to-network впишите название и пароль к WiFi-сети, 
-к которой вы хотите подключиться, процесс подключения может занять несколько секунд.
+В строчке WiFi.begin("network-name", "password") ваше название и пароль к WiFi-сети, к которой вы хотите подключиться, процесс подключения может занять несколько секунд.
 Цикл while() будет прокручивать функцию WiFi.status() до тех пор, пока она не вернет значение WL_CONNECTED.
 
 
+ПРИМЕР: (использование объекта сервера, который будет как-то обрабатывать наши http запросы)
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+WebServer server(80);
+void setup() 
+{
+  Serial.begin(115200);
+  WiFi.begin("network-name", "password");
+  Serial.print("Connecting");  //  "Подключение"
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(3000);
+    Serial.print(".");
+  }
 
+  server.on("/", handle_OnConnect); //реакция на вызов ссылки типа: http://ip_module это вызов функции handle_OnConnect()
+  server.on("/led1on", handle_led1on); //реакция на вызов ссылки типа: http://ip_module/led1on это вызов функции handle_led1on()
+  server.on("/led1off", handle_led1off);
+  server.onNotFound(handle_NotFound);
+  server.begin();
+  Serial.println("HTTP server started");
+}
+void handle_OnConnect() 
+{
+  //что-то делаем    
+  Serial.println("GPIO4 Status: OFF | GPIO5 Status: OFF");
+  server.send(200, "text/html", SendHTML(LED1status,LED2status)); 
+}
+void handle_led1on() 
+{
+  //что-то делаем    
+  Serial.println("GPIO4 Status: ON");
+  server.send(200, "text/html", SendHTML(true,LED2status)); 
+}
+void handle_led1off() 
+{
+  //что-то делаем    
+  Serial.println("GPIO4 Status: OFF");
+  server.send(200, "text/html", SendHTML(false,LED2status)); 
+}
+void handle_NotFound()
+{
+  server.send(404, "text/plain", "Not found");
+}
+String SendHTML(uint8_t led1stat,uint8_t led2stat)
+{
+    функция возвращает код HTML страницы
+}
+
+---------------------------------------------------------------------------------
 
 ESP8266 API:
 Поддержка функций, специфичных для ESP8266 реализована в объекте ESP.
@@ -110,9 +166,6 @@ ESP.getFlashChipId() возвращает flash chip ID, int 32bit
 ESP.getFlashChipSize() возвращает размер флеш памяти в байтах, так, как его определяет SDK (может быть меньше реального размера).
 ESP.getFlashChipSpeed(void) возвращает частоту флеш памяти, в Гц.
 ESP.getCycleCount() возвращает количество циклов CPU с момента старта, unsigned 32-bit. Может быть полезна для точного тайминга очень коротких операций
-
-
-
 
 
 
