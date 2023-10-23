@@ -100,7 +100,7 @@ void setup()
 ПРИМЕР: (использование объекта сервера, который будет как-то обрабатывать наши http запросы)
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-WebServer server(80);
+ESP8266WebServer server(80);
 void setup() 
 {
   Serial.begin(115200);
@@ -145,7 +145,35 @@ String SendHTML(uint8_t led1stat,uint8_t led2stat)
 {
     функция возвращает код HTML страницы
 }
-
+String html() //пример HTML страницы на ардуино
+{
+    String s = "<!DOCTYPE html>\n";
+    s += "<html>\n";
+    s += "<head>\n";
+    s += "<title>Node_MCU</title>\n";
+    s += "<style>body {background: Cornsilk;}</style>\n";    
+    s += "</head>\n";
+    s += "<body>\n";
+    s += "<h2 align='center'> Led state </h2>\n";
+    if (PinWorker::isPinOn(led_pin))
+    {
+      s += "<p style = 'color:blue; display: block;'>turned ON</p>";
+      s += "<div style='display: block; width:50px; height:50px; border:2px solid orange; background-color:khaki; border-radius:50%;'></div>";
+    }
+    else 
+    {
+       s += "<p style = 'color:blue; display: block;'>turned OFF</p>";
+       s += "<div style='display: block; width:40px; height:40px; border:2px solid orange; background-color:gray; border-radius:50%;'></div>";      
+    }
+    s += "</body>\n";
+    s += "</html>\n";
+    return s;
+}
+void loop() 
+{
+  if (millis()%500 == 0) 
+	server.handleClient();
+}
 ---------------------------------------------------------------------------------
 
 ESP8266 API:
